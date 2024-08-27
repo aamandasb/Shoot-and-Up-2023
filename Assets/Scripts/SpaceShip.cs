@@ -3,8 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem.HID;
+using Photon.Pun;
 
-public class SpaceShip : MonoBehaviour, IDamageable
+public class SpaceShip : MonoBehaviourPun, IDamageable
 {
     [SerializeField] protected float speed, fireRate, maxHealth, damage;
     protected float health, timer;

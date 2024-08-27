@@ -1,3 +1,4 @@
+using Photon.Pun;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -15,12 +16,13 @@ public class PlayerController : SpaceShip
 
     [SerializeField] Transform firePointLeft, firePointRight;
 
-    
     PlayerHUD hud;
     InputSystem inputSystem;
     Joystick joystick;
 
-    
+    bool controllerOn = true;
+
+
 
     private void Awake()
     {
@@ -34,6 +36,16 @@ public class PlayerController : SpaceShip
         inputSystem.Player.Turbo.started += ctx => speed *= 2;
         inputSystem.Player.Turbo.canceled += ctx => speed /= 2;
        
+    }
+
+    [PunRPC]
+    private void Initialize()
+    {
+
+        if (!photonView.IsMine)
+        {
+            controllerOn = false;
+        }
     }
 
     private void OnEnable()

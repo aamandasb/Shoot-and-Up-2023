@@ -26,7 +26,6 @@ public class NetworkManager : MonoBehaviourPunCallbacks
         {
             Destroy(gameObject); // Destroi o objeto se já houver uma instância existente
         }
-
         
     }
 
