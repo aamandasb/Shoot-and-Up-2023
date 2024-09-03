@@ -1,3 +1,4 @@
+using Photon.Pun;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -15,17 +16,18 @@ public class PlayerController : SpaceShip
 
     [SerializeField] Transform firePointLeft, firePointRight;
 
-    
     PlayerHUD hud;
     InputSystem inputSystem;
     Joystick joystick;
 
-    
+    bool controllerOn = true;
+
+
 
     private void Awake()
     {
         joystick = FindObjectOfType<Joystick>();
-        
+
         inputSystem = new InputSystem();
 
         inputSystem.Player.Move.performed += ctx => direction = ctx.ReadValue<Vector2>();
@@ -33,7 +35,17 @@ public class PlayerController : SpaceShip
         inputSystem.Player.Fire.canceled += ctx => firing = false;
         inputSystem.Player.Turbo.started += ctx => speed *= 2;
         inputSystem.Player.Turbo.canceled += ctx => speed /= 2;
-       
+
+    }
+
+    [PunRPC]
+    private void Initialize()
+    {
+
+        if (!photonView.IsMine)
+        {
+            controllerOn = false;
+        }
     }
 
     private void OnEnable()
@@ -90,23 +102,23 @@ public class PlayerController : SpaceShip
 
     protected override void Fire()
     {
-        
-            if (Time.time > timer + 1 / fireRate)
-            {
-                Instantiate(projectilePrefab, firePointLeft.position, Quaternion.identity).GetComponent<Projectile>().Damage = damage;
-                Instantiate(projectilePrefab, firePointRight.position, Quaternion.identity).GetComponent<Projectile>().Damage = damage;
-                timer = Time.time;
-            }
-        
+
+        if (Time.time > timer + 1 / fireRate)
+        {
+            Instantiate(projectilePrefab, firePointLeft.position, Quaternion.identity).GetComponent<Projectile>().Damage = damage;
+            Instantiate(projectilePrefab, firePointRight.position, Quaternion.identity).GetComponent<Projectile>().Damage = damage;
+            timer = Time.time;
+        }
+
     }
 
     void SpeedBuff()
     {
-        if(speedBuff)
+        if (speedBuff)
         {
             speedTimer -= Time.deltaTime;
             hud.UpdateSpeedBar(speedTimer);
-            if(speedTimer <= 0)
+            if (speedTimer <= 0)
             {
                 speed = PlayerStats.speed.Value;
                 speedBuff = false;
@@ -156,9 +168,9 @@ public class PlayerController : SpaceShip
 
     public void ActiveBuff(int buffType, float buffDuration, float buffPower)
     {
-       
 
-        switch(buffType)
+
+        switch (buffType)
         {
             case 0:
                 speedBuff = true;
@@ -167,33 +179,33 @@ public class PlayerController : SpaceShip
                 hud.SetSpeedDuration(buffDuration);
                 break;
 
-                case 1:
+            case 1:
                 fireRateBuff = true;
                 fireRate *= buffPower;
                 fireRateTimer = buffDuration;
                 hud.SetFireRateDuration(buffDuration);
                 break;
 
-                case 2:
+            case 2:
                 damageBuff = true;
                 damage *= buffPower;
                 damageTimer = buffDuration;
                 hud.SetDamageDuration(buffDuration);
                 break;
 
-                case 3:
+            case 3:
                 health += buffPower;
-                if(health > maxHealth)
+                if (health > maxHealth)
                 {
                     health = maxHealth;
                 }
                 break;
 
-                default: 
+            default:
                 break;
         }
     }
 
-   
-    
+
+
 }

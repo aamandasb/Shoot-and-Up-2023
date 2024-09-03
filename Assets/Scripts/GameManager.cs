@@ -1,12 +1,19 @@
+using Photon.Pun;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class GameManager : MonoBehaviour
+public class GameManager : MonoBehaviourPunCallbacks
 {
     int score, record, playerCoins, deathsAmount;
-    [SerializeField]UIManager managerUI;
+    [SerializeField] UIManager managerUI;
+
+    const string playerPrefabPath = "Prefabs/Player";
+
+    int playersInGame;
+    List<PlayerController> playerList = new List<PlayerController>();
+    PlayerController playerLocal;
 
     #region Singleton
     public static GameManager instance;
@@ -16,12 +23,12 @@ public class GameManager : MonoBehaviour
 
     private void Awake()
     {
-        if(instance == null)
+        if (instance == null)
         {
             instance = this;
             DontDestroyOnLoad(gameObject);
         }
-        else if(instance != this)
+        else if (instance != this)
         {
             Destroy(gameObject);
         }
@@ -30,6 +37,11 @@ public class GameManager : MonoBehaviour
     }
 
     #endregion
+
+    private void Start()
+    {
+        photonView.RPC("AddPlayer", RpcTarget.AllBuffered);
+    }
 
     private void AddCoins(int value)
     {
@@ -130,7 +142,7 @@ public class GameManager : MonoBehaviour
     {
         record = PlayerPrefs.GetInt("Record");
 
-        if(score > record)
+        if (score > record)
         {
             record = score;
             PlayerPrefs.SetInt("Record", record);
@@ -140,6 +152,22 @@ public class GameManager : MonoBehaviour
         else
         {
             return false;
+        }
+    }
+
+    private void CreatePlayer()
+    {
+        PlayerController player = NetworkManager.instance.Instantiate(playerPrefabPath, new Vector3(30, 1, 30), Quaternion.identity).GetComponent<PlayerController>();
+        player.photonView.RPC("Initialize", RpcTarget.All);
+    }
+
+    [PunRPC]
+    private void AddPlayer()
+    {
+        playersInGame++;
+        if (playersInGame == PhotonNetwork.PlayerList.Length)
+        {
+            CreatePlayer();
         }
     }
 }
